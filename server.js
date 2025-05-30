@@ -33,9 +33,9 @@ app.use('/coin', verifyToken, coinRouter);
 app.use('/api/reward', verifyToken, rewardRouter); // ✅ 보상 처리 라우터는 인증 필수
 app.use('/api/multipliers', multipliersRouter);
 
-// ✅ 기본 라우트 핸들러
+// ✅ 기본 라우트 핸들러 - Unity WebGL 게임 서빙
 app.get('/', (req, res) => {
-  res.json({ message: 'Ladder Game Server is running' });
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
 // ✅ 서버 시작

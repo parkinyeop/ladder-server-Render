@@ -3,61 +3,93 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Unity Web Player | Ledder</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #000;
+      /* 브라우저 크기에 적극적으로 대응하는 반응형 설계 */
+      #unity-container.unity-desktop .unity-canvas-wrapper {
+        /* 화면을 최대한 활용하되 9:16 비율 유지 */
+        width: min(95vw, 95vh * 0.5625); /* 더 큰 화면 사용 */
+        height: min(95vh, 95vw * 1.7778);
+        max-width: 800px; /* 더 큰 최대 크기 */
+        max-height: 1422px; /* 800 * 1.7778 = 1422 */
+        position: relative;
+        aspect-ratio: 9 / 16;
       }
-      #unity-container {
-        position: absolute;
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #000;
-      }
+      
       #unity-canvas {
+        width: 100% !important;
+        height: 100% !important;
         display: block;
-        background: #000;
-        /* width/height는 JS에서 동적으로 설정 */
+        aspect-ratio: 9 / 16;
       }
-      #unity-loading-bar {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 80%;
-        max-width: 500px;
+      
+      /* 모바일 세로 모드 */
+      @media (max-width: 480px) and (orientation: portrait) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(98vw, 98vh * 0.5625);
+          height: min(98vh, 98vw * 1.7778);
+          max-width: 98vw;
+          max-height: 98vh;
+        }
       }
-      #unity-warning {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 10px;
-        display: none;
+      
+      /* 모바일 가로 모드 */
+      @media (max-width: 896px) and (orientation: landscape) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(60vh * 0.5625, 95vw);
+          height: min(60vh, 95vw * 1.7778);
+        }
       }
-      #unity-footer {
-        position: absolute;
-        bottom: 10px;
-        width: 100%;
-        text-align: center;
+      
+      /* 태블릿 */
+      @media (min-width: 481px) and (max-width: 1024px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(85vw, 85vh * 0.5625);
+          height: min(85vh, 85vw * 1.7778);
+          max-width: 600px;
+          max-height: 1067px; /* 600 * 1.7778 = 1067 */
+        }
+      }
+      
+      /* 데스크톱 */
+      @media (min-width: 1025px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(80vw, 80vh * 0.5625);
+          height: min(80vh, 80vw * 1.7778);
+          max-width: 800px;
+          max-height: 1422px;
+        }
+      }
+      
+      /* 대형 화면 */
+      @media (min-width: 1400px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(70vw, 70vh * 0.5625);
+          height: min(70vh, 70vw * 1.7778);
+          max-width: 900px;
+          max-height: 1600px; /* 900 * 1.7778 = 1600 */
+        }
+      }
+      
+      /* 초대형 화면 */
+      @media (min-width: 1920px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(60vw, 60vh * 0.5625);
+          height: min(60vh, 60vw * 1.7778);
+          max-width: 1080px; /* 원본 크기 */
+          max-height: 1920px; /* 원본 크기 */
+        }
       }
     </style>
   </head>
   <body>
-    <div id="unity-container">
-      <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="unity-container" class="unity-desktop">
+      <div class="unity-canvas-wrapper">
+        <canvas id="unity-canvas" width=1080 height=1920 tabindex="-1"></canvas>
+      </div>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -72,20 +104,6 @@
       </div>
     </div>
     <script>
-      function resizeCanvas() {
-        const h = window.innerHeight;
-        const w = Math.floor(h * 9 / 16);
-        const canvas = document.getElementById('unity-canvas');
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-        canvas.width = w;
-        canvas.height = h;
-        document.getElementById('unity-container').style.justifyContent = 'center';
-        document.getElementById('unity-container').style.alignItems = 'center';
-      }
-      window.addEventListener('resize', resizeCanvas);
-      window.addEventListener('DOMContentLoaded', resizeCanvas);
-
       var canvas = document.querySelector("#unity-canvas");
 
       // Shows a temporary message banner/ribbon for a few seconds, or
@@ -113,6 +131,35 @@
         updateBannerVisibility();
       }
 
+      // 고해상도 반응형 캔버스 크기 조정 함수
+      function resizeCanvas() {
+        var wrapper = document.querySelector(".unity-canvas-wrapper");
+        if (wrapper) {
+          var wrapperRect = wrapper.getBoundingClientRect();
+          
+          // 9:16 비율 강제 적용
+          var targetWidth = wrapperRect.width;
+          var targetHeight = targetWidth * 1.7778; // 1920/1080
+          
+          // 높이가 래퍼를 초과하면 높이 기준으로 조정
+          if (targetHeight > wrapperRect.height) {
+            targetHeight = wrapperRect.height;
+            targetWidth = targetHeight * 0.5625; // 1080/1920
+          }
+          
+          canvas.style.width = targetWidth + "px";
+          canvas.style.height = targetHeight + "px";
+          
+          // 디바이스 픽셀 비율을 고려한 실제 캔버스 해상도 설정
+          var devicePixelRatio = window.devicePixelRatio || 1;
+          canvas.width = targetWidth * devicePixelRatio;
+          canvas.height = targetHeight * devicePixelRatio;
+          
+          console.log(`Canvas resized: ${targetWidth}x${targetHeight} (ratio: ${(targetWidth/targetHeight).toFixed(3)}, DPR: ${devicePixelRatio})`);
+          console.log(`Canvas resolution: ${canvas.width}x${canvas.height}`);
+        }
+      }
+
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/e55ad657c2a2b261595785cac6e3de17.loader.js";
       var config = {
@@ -124,43 +171,29 @@
         productName: "Ledder",
         productVersion: "0.1",
         showBanner: unityShowBanner,
+        matchWebGLToCanvasSize: false, // 수동으로 관리
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
+        // 모바일 디바이스: 고해상도 설정
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
+        
+        // 모바일에서 성능과 배터리를 위해 해상도 조정
+        config.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "1080px";
-        canvas.style.height = "1920px";
+        // 데스크톱: 고해상도 반응형
+        document.querySelector("#unity-container").className = "unity-desktop";
+        
+        // 고해상도 디스플레이 지원
+        config.devicePixelRatio = window.devicePixelRatio || 1;
+        
+        // 창 크기 변경 시 캔버스 크기 조정
+        window.addEventListener('resize', resizeCanvas);
+        // 방향 변경 시도 캔버스 크기 조정
+        window.addEventListener('orientationchange', function() {
+          setTimeout(resizeCanvas, 100);
+        });
       }
 
       document.querySelector("#unity-loading-bar").style.display = "block";
@@ -175,12 +208,19 @@
           document.querySelector("#unity-fullscreen-button").onclick = () => {
             unityInstance.SetFullscreen(1);
           };
+          
+          // 초기 캔버스 크기 설정
+          setTimeout(resizeCanvas, 100);
+          
+          // Unity 인스턴스가 로드된 후에도 추가 리사이즈
+          setTimeout(resizeCanvas, 500);
+
         }).catch((message) => {
           alert(message);
         });
       };
-      document.body.appendChild(script);
 
+      document.body.appendChild(script);
     </script>
   </body>
 </html>

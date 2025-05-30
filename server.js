@@ -18,8 +18,23 @@ const PORT = 3000;
 const clientBuildPath = path.join(__dirname, 'public');
 
 // ✅ 공통 미들웨어
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://laddergame.onrender.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+
+// ✅ API URL 정보 제공 엔드포인트
+app.get('/api/config', (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const apiUrl = isProduction ? 'https://laddergame.onrender.com' : 'http://localhost:3000';
+  
+  res.json({
+    apiUrl: apiUrl,
+    environment: isProduction ? 'production' : 'development'
+  });
+});
 
 // ✅ 정적 파일 서빙
 app.use(express.static(clientBuildPath));
@@ -41,4 +56,5 @@ app.get('/', (req, res) => {
 // ✅ 서버 시작
 app.listen(PORT, () => {
   console.log(`🚀 Server started at http://localhost:${PORT}`);
+  console.log(`🌐 API URL: ${process.env.NODE_ENV === 'production' ? 'https://laddergame.onrender.com' : 'http://localhost:3000'}`);
 });

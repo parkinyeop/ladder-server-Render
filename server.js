@@ -15,7 +15,7 @@ const app = express();
 const PORT = 3000;
 
 // ✅ Unity WebGL 빌드 경로
-const clientBuildPath = path.join(__dirname, '../Ladder-Game/0516_007_node');
+const clientBuildPath = path.join(__dirname, 'public');
 
 // ✅ 공통 미들웨어
 app.use(cors());
@@ -33,9 +33,9 @@ app.use('/coin', verifyToken, coinRouter);
 app.use('/api/reward', verifyToken, rewardRouter); // ✅ 보상 처리 라우터는 인증 필수
 app.use('/api/multipliers', multipliersRouter);
 
-// ✅ index.html 반환
+// ✅ 기본 라우트 핸들러
 app.get('/', (req, res) => {
-  res.sendFile(path.join(clientBuildPath, 'index.html'));
+  res.json({ message: 'Ladder Game Server is running' });
 });
 
 // ✅ 서버 시작

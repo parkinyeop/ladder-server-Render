@@ -7,19 +7,29 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
     <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: #000;
+      }
+
       #unity-container {
         width: 100%;
+        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        flex-direction: column;
       }
 
       .unity-canvas-wrapper {
-        width: 100%;
-        max-width: 1080px;
+        height: 100vh;
         aspect-ratio: 9 / 16;
+        max-height: 100vh;
+        max-width: calc(100vh * 9 / 16);
         position: relative;
       }
 
@@ -38,23 +48,25 @@
     </style>
   </head>
   <body>
-    <div id="unity-container" class="unity-desktop">
+    <div id="unity-container">
       <div class="unity-canvas-wrapper">
         <canvas id="unity-canvas" tabindex="-1"></canvas>
       </div>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"></div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Ledder</div>
+    </div>
+
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
       </div>
     </div>
+    <div id="unity-warning"></div>
+    <div id="unity-footer">
+      <div id="unity-logo-title-footer"></div>
+      <div id="unity-fullscreen-button"></div>
+      <div id="unity-build-title">Ledder</div>
+    </div>
+
     <script>
       const canvas = document.querySelector("#unity-canvas");
 
@@ -103,7 +115,6 @@
           alert(message);
         });
       };
-
       document.body.appendChild(script);
     </script>
   </body>

@@ -21,10 +21,7 @@ const clientBuildPath = path.join(__dirname, 'public');
 express.static.mime.define({
   'application/wasm': ['wasm'],
   'application/javascript': ['js'],
-  'application/octet-stream': ['data', 'unityweb'],
-  'text/javascript': ['jsgz'],
-  'application/gzip': ['gz'],
-  'application/x-gzip': ['gz']
+  'application/octet-stream': ['data', 'unityweb']
 });
 
 // ✅ 공통 미들웨어

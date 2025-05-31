@@ -6,6 +6,70 @@
     <title>Unity Web Player | Ledder</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <style>
+      /* 반응형 캔버스 래퍼 */
+      #unity-container.unity-desktop .unity-canvas-wrapper {
+        width: min(95vw, 95vh * 0.5625);
+        height: min(95vh, 95vw * 1.7778);
+        max-width: 800px;
+        max-height: 1422px;
+        position: relative;
+        aspect-ratio: 9 / 16;
+      }
+      #unity-canvas {
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+        aspect-ratio: 9 / 16;
+      }
+      @media (max-width: 480px) and (orientation: portrait) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(98vw, 98vh * 0.5625);
+          height: min(98vh, 98vw * 1.7778);
+          max-width: 98vw;
+          max-height: 98vh;
+        }
+      }
+      @media (max-width: 896px) and (orientation: landscape) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(60vh * 0.5625, 95vw);
+          height: min(60vh, 95vw * 1.7778);
+        }
+      }
+      @media (min-width: 481px) and (max-width: 1024px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(85vw, 85vh * 0.5625);
+          height: min(85vh, 85vw * 1.7778);
+          max-width: 600px;
+          max-height: 1067px;
+        }
+      }
+      @media (min-width: 1025px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(80vw, 80vh * 0.5625);
+          height: min(80vh, 80vw * 1.7778);
+          max-width: 800px;
+          max-height: 1422px;
+        }
+      }
+      @media (min-width: 1400px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(70vw, 70vh * 0.5625);
+          height: min(70vh, 70vw * 1.7778);
+          max-width: 900px;
+          max-height: 1600px;
+        }
+      }
+      @media (min-width: 1920px) {
+        #unity-container.unity-desktop .unity-canvas-wrapper {
+          width: min(60vw, 60vh * 0.5625);
+          height: min(60vh, 60vw * 1.7778);
+          max-width: 1080px;
+          max-height: 1920px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -81,25 +145,34 @@
       // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
       // expected to change.
 
+      function resizeCanvas() {
+        var wrapper = document.querySelector(".unity-canvas-wrapper");
+        if (wrapper) {
+          var wrapperRect = wrapper.getBoundingClientRect();
+          var targetWidth = wrapperRect.width;
+          var targetHeight = targetWidth * 1.7778;
+          if (targetHeight > wrapperRect.height) {
+            targetHeight = wrapperRect.height;
+            targetWidth = targetHeight * 0.5625;
+          }
+          canvas.style.width = targetWidth + "px";
+          canvas.style.height = targetHeight + "px";
+          var devicePixelRatio = window.devicePixelRatio || 1;
+          canvas.width = targetWidth * devicePixelRatio;
+          canvas.height = targetHeight * devicePixelRatio;
+        }
+      }
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
+        // 모바일 해상도 조정 필요시 여기에 추가
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-        canvas.style.width = "1080px";
-        canvas.style.height = "1920px";
+        document.querySelector("#unity-container").className = "unity-desktop";
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', function() {
+          setTimeout(resizeCanvas, 100);
+        });
+        resizeCanvas();
       }
 
       document.querySelector("#unity-loading-bar").style.display = "block";

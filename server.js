@@ -21,10 +21,7 @@ const clientBuildPath = path.join(__dirname, 'public');
 express.static.mime.define({
   'application/wasm': ['wasm'],
   'application/javascript': ['js'],
-  'application/octet-stream': ['data', 'unityweb'],
-  'text/javascript': ['jsgz'],
-  'application/gzip': ['gz'],
-  'application/x-gzip': ['gz']
+  'application/octet-stream': ['data', 'unityweb']
 });
 
 // ✅ 공통 미들웨어
@@ -38,21 +35,15 @@ app.use(express.json());
 // ✅ Unity WebGL 파일들에 대한 특별한 처리
 app.use('/Build', express.static(path.join(clientBuildPath, 'Build'), {
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.js.gz')) {
+    if (filePath.endsWith('.js')) {
       res.setHeader('Content-Type', 'application/javascript');
-      res.setHeader('Content-Encoding', 'gzip');
-    } else if (filePath.endsWith('.wasm.gz')) {
-      res.setHeader('Content-Type', 'application/wasm');
-      res.setHeader('Content-Encoding', 'gzip');
-    } else if (filePath.endsWith('.data.gz')) {
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader('Content-Encoding', 'gzip');
-    } else if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
     } else if (filePath.endsWith('.wasm')) {
       res.setHeader('Content-Type', 'application/wasm');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
     } else if (filePath.endsWith('.data')) {
       res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
     } else if (filePath.endsWith('.unityweb')) {
       res.setHeader('Content-Type', 'application/octet-stream');
     }
@@ -73,19 +64,7 @@ app.get('/api/config', (req, res) => {
 // ✅ 정적 파일 서빙 (Unity WebGL 전용 설정 추가)
 app.use(express.static(clientBuildPath, {
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.js.gz')) {
-      res.setHeader('Content-Type', 'application/javascript');
-      res.setHeader('Content-Encoding', 'gzip');
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-    } else if (filePath.endsWith('.wasm.gz')) {
-      res.setHeader('Content-Type', 'application/wasm');
-      res.setHeader('Content-Encoding', 'gzip');
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-    } else if (filePath.endsWith('.data.gz')) {
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader('Content-Encoding', 'gzip');
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-    } else if (filePath.endsWith('.js')) {
+    if (filePath.endsWith('.js')) {
       res.setHeader('Content-Type', 'application/javascript');
       res.setHeader('Cache-Control', 'public, max-age=31536000');
     } else if (filePath.endsWith('.wasm')) {
@@ -93,6 +72,7 @@ app.use(express.static(clientBuildPath, {
       res.setHeader('Cache-Control', 'public, max-age=31536000');
     } else if (filePath.endsWith('.data')) {
       res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
     } else if (filePath.endsWith('.unityweb')) {
       res.setHeader('Content-Type', 'application/octet-stream');
     }

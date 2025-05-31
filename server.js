@@ -17,6 +17,16 @@ const PORT = 3000;
 // ✅ Unity WebGL 빌드 경로
 const clientBuildPath = path.join(__dirname, 'public');
 
+// ✅ Unity WebGL MIME type 설정
+express.static.mime.define({
+  'application/wasm': ['wasm'],
+  'application/javascript': ['js'],
+  'application/octet-stream': ['data', 'unityweb'],
+  'text/javascript': ['jsgz'],
+  'application/gzip': ['gz'],
+  'application/x-gzip': ['gz']
+});
+
 // ✅ 공통 미들웨어
 app.use(cors({
   origin: ['http://localhost:3000', 'https://laddergame.onrender.com'],
@@ -24,6 +34,21 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+
+// ✅ Unity WebGL 파일들에 대한 특별한 처리
+app.use('/Build', express.static(path.join(clientBuildPath, 'Build'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.wasm')) {
+      res.setHeader('Content-Type', 'application/wasm');
+    } else if (filePath.endsWith('.data')) {
+      res.setHeader('Content-Type', 'application/octet-stream');
+    } else if (filePath.endsWith('.unityweb')) {
+      res.setHeader('Content-Type', 'application/octet-stream');
+    }
+  }
+}));
 
 // ✅ API URL 정보 제공 엔드포인트
 app.get('/api/config', (req, res) => {
@@ -36,9 +61,18 @@ app.get('/api/config', (req, res) => {
   });
 });
 
-// ✅ 정적 파일 서빙
-app.use(express.static(clientBuildPath));
-
+// ✅ 정적 파일 서빙 (Unity WebGL 전용 설정 추가)
+app.use(express.static(clientBuildPath, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    } else if (filePath.endsWith('.wasm')) {
+      res.setHeader('Content-Type', 'application/wasm');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+  }
+}));
 
 // ✅ 인증 없이 허용할 경로
 app.use('/auth', authRouter);

@@ -10,9 +10,10 @@ const multipliersRouter = require('./routes/multipliers');
 
 // ✅ 올바른 방법
 const { verifyToken } = require('./middleware/authMiddleware');
+const { startTelegramBot } = require('./telegramBot'); // telegramBot.js에서 함수 가져오기
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Render 포트 호환성 확인
 
 // ✅ Unity WebGL 빌드 경로
 const clientBuildPath = path.join(__dirname, 'public');
@@ -26,7 +27,7 @@ express.static.mime.define({
 
 // ✅ 공통 미들웨어
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://laddergame.onrender.com'],
+  origin: ['http://localhost:3000', 'https://laddergame.onrender.com', process.env.GAME_URL].filter(Boolean),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -53,7 +54,9 @@ app.use('/Build', express.static(path.join(clientBuildPath, 'Build'), {
 // ✅ API URL 정보 제공 엔드포인트
 app.get('/api/config', (req, res) => {
   const isProduction = process.env.NODE_ENV === 'production';
-  const apiUrl = isProduction ? 'https://laddergame.onrender.com' : 'http://localhost:3000';
+  // API URL은 Render에서 설정한 주소 또는 환경 변수를 따르도록 수정
+  const defaultApiUrl = `http://localhost:${PORT}`;
+  const apiUrl = isProduction ? (process.env.API_URL || 'https://laddergame.onrender.com') : defaultApiUrl;
   
   res.json({
     apiUrl: apiUrl,
@@ -87,13 +90,23 @@ app.use('/coin', verifyToken, coinRouter);
 app.use('/api/reward', verifyToken, rewardRouter); // ✅ 보상 처리 라우터는 인증 필수
 app.use('/api/multipliers', multipliersRouter);
 
-// ✅ 기본 라우트 핸들러 - Unity WebGL 게임 서빙
+// ✅ 기본 라우트 핸들러 - Unity WebGL 게임 서빙 (API 라우트 뒤에 위치)
 app.get('/', (req, res) => {
   res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
+// ✅ 서버 시작 전에 텔레그램 봇 시작
+const telegramBotInstance = startTelegramBot(); 
+if (!telegramBotInstance) {
+  console.error("[SERVER] 텔레그램 봇 시작에 실패했습니다. 서버는 웹 기능만으로 시작됩니다.");
+}
+
 // ✅ 서버 시작
 app.listen(PORT, () => {
-  console.log(`🚀 Server started at http://localhost:${PORT}`);
-  console.log(`🌐 API URL: ${process.env.NODE_ENV === 'production' ? 'https://laddergame.onrender.com' : 'http://localhost:3000'}`);
+  console.log(`[SERVER] 🚀 Server started on port ${PORT}`); // Render에서 실제 할당된 포트 확인용
+  const apiUrl = process.env.NODE_ENV === 'production' ? (process.env.API_URL || 'https://laddergame.onrender.com') : `http://localhost:${PORT}`;
+  console.log(`[SERVER] 🌐 API URL: ${apiUrl}`);
+  if(process.env.GAME_URL) {
+    console.log(`[SERVER] 🎮 Game URL for Bot: ${process.env.GAME_URL}`);
+  }
 });

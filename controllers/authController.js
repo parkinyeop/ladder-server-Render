@@ -112,6 +112,25 @@ exports.telegramLogin = async (req, res) => {
       );
       dbUser = newUserResult.rows[0];
       console.log(`[AUTH] New user created in DB: user_id=${dbUser.user_id}, telegram_id=${dbUser.telegram_id}`);
+
+      // 새 사용자에게 코인 100개 지급 (coins 테이블 사용)
+      try {
+        const initialCoinAmount = 100;
+        // coins 테이블에 user_id와 함께 초기 코인 값을 INSERT 합니다.
+        // 만약 이미 해당 user_id로 레코드가 있다면 (예: 다른 경로로 생성되었지만 코인이 0인 경우 등) 어떻게 처리할지 고려 필요.
+        // 여기서는 ON CONFLICT DO NOTHING 또는 ON CONFLICT DO UPDATE를 사용할 수 있습니다.
+        // ON CONFLICT (user_id) DO UPDATE SET balance = excluded.balance (또는 100) 로 하면, 기존 레코드가 있으면 100으로 설정.
+        // 여기서는 새 사용자가 확실하므로, 단순 INSERT를 가정하거나, 충돌 시 업데이트하는 로직을 추가합니다.
+        // user_id가 coins 테이블에서 UNIQUE 또는 PRIMARY KEY라고 가정합니다.
+        await pool.query(
+          'INSERT INTO coins (user_id, balance, last_updated) VALUES ($1, $2, CURRENT_TIMESTAMP) ON CONFLICT (user_id) DO UPDATE SET balance = $2, last_updated = CURRENT_TIMESTAMP',
+          [dbUser.user_id, initialCoinAmount]
+        );
+        console.log(`[AUTH] Initial ${initialCoinAmount} coins granted to new user or updated for user: ${dbUser.user_id}`);
+      } catch (coinError) {
+        console.error(`[AUTH] 🔴 Error granting initial coins to user ${dbUser.user_id}:`, coinError);
+        // 코인 지급 실패 시 로깅만 하고 넘어갑니다.
+      }
     }
 
     const token = generateToken(dbUser.user_id);

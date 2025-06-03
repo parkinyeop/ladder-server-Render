@@ -95,10 +95,17 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
-// ✅ 서버 시작 전에 텔레그램 봇 시작
-const telegramBotInstance = startTelegramBot(); 
-if (!telegramBotInstance) {
-  console.error("[SERVER] 텔레그램 봇 시작에 실패했습니다. 서버는 웹 기능만으로 시작됩니다.");
+// ✅ 서버 시작 전에 텔레그램 봇 시작 (조건부 실행)
+if (process.env.RUN_TELEGRAM_BOT === 'true') {
+  const telegramBotInstance = startTelegramBot(); 
+  if (!telegramBotInstance) {
+    console.error("[SERVER] 텔레그램 봇 시작에 실패했습니다. (RUN_TELEGRAM_BOT=true 설정됨)");
+  } else {
+    console.log("[SERVER] 텔레그램 봇 인스턴스가 시작 명령에 따라 시작되었습니다. (RUN_TELEGRAM_BOT=true)");
+  }
+} else {
+  console.log("[SERVER] RUN_TELEGRAM_BOT 환경 변수가 'true'로 설정되지 않았거나 존재하지 않아 텔레그램 봇을 시작하지 않습니다.");
+  console.log(`[SERVER] 현재 RUN_TELEGRAM_BOT 값: ${process.env.RUN_TELEGRAM_BOT}`);
 }
 
 // ✅ 서버 시작

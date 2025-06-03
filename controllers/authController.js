@@ -104,6 +104,26 @@ exports.telegramLogin = async (req, res) => {
         );
         console.log(`[AUTH] User info updated for telegram_id: ${telegram_id}`);
       }
+
+      // ★★★ 기존 사용자의 코인 정보 확인 및 필요시 지급 ★★★
+      try {
+        const coinRecordResult = await pool.query('SELECT balance FROM coins WHERE user_id = $1', [dbUser.user_id]);
+        if (coinRecordResult.rows.length === 0) { // 코인 레코드가 없으면
+          const initialCoinAmount = 100; // 초기 지급 코인 또는 기본값
+          await pool.query(
+            'INSERT INTO coins (user_id, balance) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET balance = $2',
+            [dbUser.user_id, initialCoinAmount]
+          );
+          console.log(`[AUTH_RECOVERY] No coin record found for existing user ${dbUser.user_id}. Granted ${initialCoinAmount} coins.`);
+          // 필요하다면, 클라이언트에게 잔액이 방금 복구되었음을 알리는 추가 정보를 응답에 포함할 수 있습니다.
+          // 예를 들어, res.json 응답 객체에 isBalanceRecovered: true 같은 플래그를 추가할 수 있습니다.
+        } else {
+          console.log(`[AUTH] Coin record found for user ${dbUser.user_id}, balance: ${coinRecordResult.rows[0].balance}`);
+        }
+      } catch (coinCheckError) {
+        console.error(`[AUTH_ERROR] Error checking/granting coins for existing user ${dbUser.user_id}:`, coinCheckError);
+      }
+
     } else {
       console.log(`[AUTH] New user. Creating account for telegram_id: ${telegram_id}`);
       const newUserResult = await pool.query(

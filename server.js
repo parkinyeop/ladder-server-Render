@@ -120,11 +120,27 @@ if (process.env.RUN_TELEGRAM_BOT === 'true') {
 }
 
 // ✅ 서버 시작
-app.listen(PORT, () => {
-  console.log(`[SERVER] 🚀 Server started on port ${PORT}`); // Render에서 실제 할당된 포트 확인용
-  const apiUrl = process.env.NODE_ENV === 'production' ? (process.env.API_URL || 'https://laddergame.onrender.com') : `http://localhost:${PORT}`;
-  console.log(`[SERVER] 🌐 API URL: ${apiUrl}`);
-  if(process.env.GAME_URL) {
-    console.log(`[SERVER] 🎮 Game URL for Bot: ${process.env.GAME_URL}`);
-  }
-});
+const startServer = () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[SERVER] 🚀 Server started on port ${PORT}`); // Render에서 실제 할당된 포트 확인용
+    const apiUrl = process.env.NODE_ENV === 'production' ? (process.env.API_URL || 'https://laddergame.onrender.com') : `http://localhost:${PORT}`;
+    console.log(`[SERVER] 🌐 API URL: ${apiUrl}`);
+    if(process.env.GAME_URL) {
+      console.log(`[SERVER] 🎮 Game URL for Bot: ${process.env.GAME_URL}`);
+    }
+  });
+
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`[SERVER] ⚠️ Port ${PORT} is already in use. Trying to restart server...`);
+      setTimeout(() => {
+        server.close();
+        startServer();
+      }, 1000);
+    } else {
+      console.error('[SERVER] ❌ Server error:', error);
+    }
+  });
+};
+
+startServer();

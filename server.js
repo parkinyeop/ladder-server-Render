@@ -132,14 +132,20 @@ const startServer = () => {
 
   server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
-      console.error(`[SERVER] ⚠️ Port ${PORT} is already in use. Trying to restart server...`);
-      setTimeout(() => {
-        server.close();
-        startServer();
-      }, 1000);
+      console.error(`[SERVER] ⚠️ Port ${PORT} is already in use. Exiting process...`);
+      process.exit(1); // 프로세스를 종료하고 Render가 재시작하도록 함
     } else {
       console.error('[SERVER] ❌ Server error:', error);
     }
+  });
+
+  // 프로세스 종료 시 서버 정리
+  process.on('SIGTERM', () => {
+    console.log('[SERVER] SIGTERM received. Shutting down gracefully...');
+    server.close(() => {
+      console.log('[SERVER] Server closed');
+      process.exit(0);
+    });
   });
 };
 

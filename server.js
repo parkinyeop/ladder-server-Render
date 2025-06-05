@@ -15,6 +15,8 @@ const { startTelegramBot } = require('./telegramBot'); // telegramBot.js에서 �
 const app = express();
 const PORT = process.env.PORT || 3000; // Render 포트 호환성 확인
 
+let telegramBotInstance; // 전역 선언
+
 // ✅ Unity WebGL 빌드 경로
 const clientBuildPath = path.join(__dirname, 'public');
 
@@ -108,7 +110,7 @@ app.get('/', (req, res) => {
 
 // ✅ 서버 시작 전에 텔레그램 봇 시작 (조건부 실행)
 if (process.env.RUN_TELEGRAM_BOT === 'true') {
-  const telegramBotInstance = startTelegramBot(); 
+  telegramBotInstance = startTelegramBot(); // 전역 변수에 할당
   if (!telegramBotInstance) {
     console.error("[SERVER] 텔레그램 봇 시작에 실패했습니다. (RUN_TELEGRAM_BOT=true 설정됨)");
   } else {

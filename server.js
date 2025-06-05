@@ -90,6 +90,17 @@ app.use('/coin', verifyToken, coinRouter);
 app.use('/api/reward', verifyToken, rewardRouter); // ✅ 보상 처리 라우터는 인증 필수
 app.use('/api/multipliers', multipliersRouter);
 
+// Webhook 엔드포인트 추가
+app.post('/webhook', (req, res) => {
+  if (telegramBotInstance) {
+    telegramBotInstance.processUpdate(req.body);
+    res.sendStatus(200);
+  } else {
+    console.error("[SERVER] 텔레그램 봇이 초기화되지 않았습니다.");
+    res.sendStatus(500);
+  }
+});
+
 // ✅ 기본 라우트 핸들러 - Unity WebGL 게임 서빙 (API 라우트 뒤에 위치)
 app.get('/', (req, res) => {
   res.sendFile(path.join(clientBuildPath, 'index.html'));

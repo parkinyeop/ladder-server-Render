@@ -10,8 +10,20 @@ function startTelegramBot() {
   }
 
   const gameUrl = process.env.GAME_URL || 'https://laddergame.onrender.com';
+  const webhookUrl = process.env.WEBHOOK_URL || 'https://laddergame.onrender.com/webhook';
 
-  const bot = new TelegramBot(token, { polling: true });
+  // Webhook 모드로 봇 초기화
+  const bot = new TelegramBot(token, { webHook: {
+    port: process.env.PORT || 3000,
+    path: '/webhook'
+  }});
+
+  // Webhook 설정
+  bot.setWebHook(webhookUrl).then(() => {
+    console.log(`[BOT] Webhook이 성공적으로 설정되었습니다: ${webhookUrl}`);
+  }).catch(error => {
+    console.error(`[BOT] Webhook 설정 실패:`, error);
+  });
 
   console.log('텔레그램 봇 로직이 초기화되었습니다...');
 
